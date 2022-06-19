@@ -44,3 +44,18 @@ mongodb://localhost:27017/TestDB -> mongodb://host.docker.internal:27017/TestDB
 ```
 
 도메인이나 URL 이 필요한 곳 어디서나 사용이 가능하다. 특수 도메인으로 설정해놓으면 나머지는 도커가 알아서 처리한다.
+
+# 컨테이너 간 통신: 기본 솔루션
+모든 컨테이너는 한 가지에 역할만 수행하여 집중하도록 설계하는 것이 좋다.
+예를 들면 어플리케이션 컨테이너와 데이터베이스 컨테이너를 나누는 것이다.
+
+mongodb 를 별도의 컨테이너에 실행시킨 뒤, ```$ docker container inspect [컨테이너명] ``` 명령으로 확인해보면 
+NetworkSettings 에서 **IPAddress** 를 확인할 수 있다. 이것은 컨테이너의 IP 주소이다.
+해당 IP 주소를 통해 데이터베이스 컨테이너에 연결할 수 있다.
+
+```
+mongodb://host.docker.internal:27017/TestDB -> mongodb://172.17.0.2:27017/TestDB 
+```
+
+이것은 로컬 호스트 머신의 MongoDB 가 아닌 Mongo 컨테이너에 있는 완전히 새로운 Mongo Database 를 사용하는 것이다.
+완전히 별개의 격리된 데이터베이스이다. 결국 **분리와 격리**는 도커의 핵심 개념이자 도커를 사용하는 핵심적인 이유이다.
