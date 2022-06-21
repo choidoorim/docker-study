@@ -95,6 +95,7 @@ $ docker run --network test-net --name database ...
 그 대신 도커가 어플리케이션이 실행되는 환경을 소유하고 어플리케이션이 HTTP 요청 등 **컨테이너에서 다른 종류의 요청을 보내는 경우 도커가 이를 인식**한다.
 그 시점에 도커는 주변의 컨테이너와 호스트 머신을 알고 있기 때문에 주소, 컨테이너 이름 또는 ```host.docker.internal``` 을 실제 IP 주소로 바꾸게 된다.
 
+# Docker 네트워크 드라이버
 Docker Networks 는 실제로 네트워크 동작에 영향을 미치는 다양한 종류의 드라이버를 지원한다. Default 드라이버는 ```bridge``` 드라이버이다.
 네트워크 생성시에 ```--driver``` 옵션을 통해 ```host, overlap, macvlan, none``` 드라이버를 설정할 수 있다.
 하지만 기본적으로 ```bridge``` 드라이버는 대부분의 환경에 적합하다.
