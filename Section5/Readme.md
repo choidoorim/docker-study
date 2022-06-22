@@ -88,3 +88,9 @@ $ docker run -e MONGODB_USERNAME=max ...
 하지만 컨테이너에 복사하는 파일 중에 복사하지 않고 싶은 것이 있을 수도 있다.
 이를 위해서는 ```.dockerignore``` 파일을 추가하면 된다.    
 대표적으로 ```node_modules``` 는 컨테이너 내부에 이미 설치한 모든 종속성을 불필요하게 다시 복사하지 않도록 하기 위해서 제외한다.
+
+# (바인드 마운트로) React 컨테이너에 대한 라이브 소스 코드 업데이트하기
+```
+$ docker run --name goals-front -v "/Users/choidoorim/Desktop/Docker 강의/Source/multi-01-starting-setup/frontend/src":/app/src  --rm -p 3000:3000 -it -d goals-react
+```
+위 명령으로 컨테이너를 실행시켜 로컬과 컨테이너 간의 바인트 마운팅을 해준다.
