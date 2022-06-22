@@ -53,3 +53,38 @@ Mongo DB 인 경우 내부 데이터가 존재하는 경로를 직접적으로 �
 만약 기존에 있는 볼륨일 경우 도커는 호스트 머신의 폴더에 존재하는 데이터를 컨테이너 폴더로 로드한다. 이렇게 된다면 데이터가 손실되지 않는다.
 
 # NodeJS 컨테이너의 볼륨, 바인딩 마운트 및 폴리싱(Polishing)
+Named Volume 을 통해 컨테이너에서 소멸된 데이터가 살아남을 수 있도록 할 수 있다.
+그리고 바인드 마운팅을 통해 호스팅 머신 내부에서 로그 파일을 읽을 수 있다.
+```
+$  docker run --name goals-backend -v "/Users/choidoorim/Desktop/Docker 강의/Source/multi-01-starting-setup/backend":/app -v logs:/app/logs -v /app/node_modules --rm -d -p 80:80 --network goals-net goals-node
+```
+컨테이너를 실행하는 명령에 볼륨을 추가해서 로그 데이터가 유지되고, 기존 컨테이너 내부의 ```node_modules``` 폴더는 덮어씌워지지 않도록 했다.
+
+바인드 마운팅을 통해서 기존 호스트 머신의 코드가 컨테이너에 반영될 수 있도록 했지만, Node 서버는 ```node app.js``` 명령이 실행되는 시점에 코드가 반영이 되기 때문에 
+이미 실행 중인 노드 서버에는 영향을 미치지 않는다.     
+하지만 코드 변경 시 노드 서버가 다시 시작되는 것을 원할 것이다. 그것은 nodemon 패키지를 사용하면 해결할 수 있다. 
+
+만약 하드코딩된 부분이 있다면 Dockerfile 에서 ENV 명령을 통해 개선할 수 있다.
+```dockerfile
+# ...
+ENV MONGODB_USERNAME=root
+ENV MONGODB_PASSWORD=password
+```
+```javascript
+mongoose.connect(
+  `mongodb://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@mongodb:27017/course-goals`,
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  },
+//...
+```
+만약 컨테이너 실행 시에 ```-e``` 옵션을 넣지 않는다면 디폴트인 root 와 password 가 사용될 것이다.
+```
+$ docker run -e MONGODB_USERNAME=max ...
+```
+
+현재 Dockerfile 덕분에 모든 종속성이 설치된 이후에 백엔드 폴더의 모든 것을 컨테이너로 복사했다.
+하지만 컨테이너에 복사하는 파일 중에 복사하지 않고 싶은 것이 있을 수도 있다.
+이를 위해서는 ```.dockerignore``` 파일을 추가하면 된다.    
+대표적으로 ```node_modules``` 는 컨테이너 내부에 이미 설치한 모든 종속성을 불필요하게 다시 복사하지 않도록 하기 위해서 제외한다.
