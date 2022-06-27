@@ -125,3 +125,38 @@ maxOS 나 Window 에서는 Docker 와 함께 설정되기에 Docker Compose 가 
 3. $ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 4. verify: $ docker-compose --version
 ```
+
+# Docker Compose Up 과 Down
+Docker Compose 를 실행시키기 위해서는 Docker Compose 가 있는 파일로 이동해야 한다.    
+```$ docker-compose up``` 하나의 명령으로 Compose 파일에서 찾을 수 있는 모든 서비스가 시작된다.
+그리고 그것은 단지 컨테이너를 시작할 뿐만 아니라 필요한 모든 이미지를 가져와 빌드한다.
+
+```$ docker ps -a``` 명령으로 확인해보면 컨테이너가 중지되어 있는 것을 확인할 수 있다.
+만약 detached 모드에서 시작하고 싶다면 ```-d``` 플래그를 추가한, ```$ docker compose up -d``` 명령으로 실행하면 된다.
+
+모든 서비스를 중지하고 모든 컨테이너 등을 제거하려면 ```$ docker-compose down``` 을 실행하면 된다.
+관련된 모든 것이 삭제되지만 볼륨은 삭제되지 않늗다. 볼륨도 삭제하기 위해서는 ```-v``` 플래그를 추가하면 된다.
+기본적으로 볼륨을 삭제하면서 서비스를 중단시키는 것은 좋지 않다.
+
+```docker-compose up``` 은 모든 이미지를 가져와 컨테이너를 시작하는 것이고, ```docker-compose down``` 은 중지를 위한 것이다.
+
+# 다중 컨테이너로 작업하기
+기존에 이미지가 존재하지 않는다면 그것을 리빌드해서 사용할 수 있지만, Docker Compose 는 리빌드 단계를 대체할 수 있게 도와준다.
+바로 ```build``` 옵션으로 이것을 수행한다. ```Dockerfile``` 이 찾을 수 있는 곳을 넣어주면 된다.
+```
+services:
+  #...
+  backend: 
+    build: ./backend
+```
+이것이 빌드되면 이 컨테이너에 빌드된 이미지를 사용한다. 더 긴 형태로 build 옵션을 사용할 수도 있다.
+```
+services:
+  #...
+  backend: 
+    context: ./backend
+    dockerfile: Dockerfile
+```
+context 옵션 내에 Dockerfile 을 보유하는 폴더의 경로를 특정한다.       
+그리고 dockerfile 키 안에 파일 이름을 지정한다. 일반적으로는 Dockerfile 이다. 그러나 Dockerfile-dev 라던지 다른 이름을 사용한다면 
+Docker Compose 에 사용할 Dockerfile 을 이런식으로 알릴 수 있다.
