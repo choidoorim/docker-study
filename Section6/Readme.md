@@ -153,10 +153,71 @@ services:
 ```
 services:
   #...
-  backend: 
+  backend:
+    # 경로 
     context: ./backend
+    # Dockerfile Name
     dockerfile: Dockerfile
 ```
 context 옵션 내에 Dockerfile 을 보유하는 폴더의 경로를 특정한다.       
 그리고 dockerfile 키 안에 파일 이름을 지정한다. 일반적으로는 Dockerfile 이다. 그러나 Dockerfile-dev 라던지 다른 이름을 사용한다면 
-Docker Compose 에 사용할 Dockerfile 을 이런식으로 알릴 수 있다.
+Docker Compose 에 사용할 Dockerfile 을 이런식으로 알릴 수 있다.        
+따라서 backend 경로의 Dockerfile 만 사용할 수 있게 된다.
+
+게시된 포트를 지정할 수도 있다. ```ports``` 옵션을 사용하면 된다.
+```
+services:
+  #...
+  backend:
+    # ...
+    ports:
+      - '3000:80'
+```
+외부, 내부 포트를 대쉬(-) 를 통해 지정한다.
+
+볼륨은 ```volumes``` 옵션을 사용하면 된다. 그리고 대쉬(-) 를 통해 추가해주면 된다. 
+만약 Named Volume 일 경우 services 와 같은 위치에 추가해줘야 한다.
+```
+services:
+# ...
+volumes
+  - data:
+  - logs:
+```
+기존에는 바인트 마운트 시에 절대 경로를 사용했지만, Docker Compose 를 사용한다면 바인드 마운트 같은 경우에는 상대경로를 사용할 수 있다.
+예를 들면 전체 폴더를 공유하고자하면 그 폴더를 지정하면 된다.
+```
+services:
+  volumes:
+    # /Users/maximilianschwarzmuller/development/teaching/udemy/docker-complete/backend:/app (X)
+    - ./backend:/app
+```
+```...docker-complete/backend``` 에서도 backend 폴더를 공유하고 있으므로 ```./backend:/app``` 으로 표현이 가능하다.
+
+```depends_on``` 옵션은 ```docker run``` 명령에는 없는 도커 컴포즈에만 있는 옵션이다. 개별 명령을 실행할 때는 의미가 없기 때문이다.
+도커 컴포즈를 사용하면 여러 서비스를 만들고 시작한다. 즉, 동시에 여러 컨테이너가 생성되는 것이다. 때로는 하나의 컨테이너가 이미 실행되고 있는 다른 컨테이너에 의존할 수 있다.
+예를 들면 Backend 서비스는 Database 서비스에 의존하고 있다.     
+즉, 어떤 컨테이너를 먼저 불러와야 함을 컴포즈에게 알려주기 위해서 사용한다.
+```
+services:
+  backend:
+    #...
+    depends_on:
+      - 
+```
+```depends_on``` 옵션에 대쉬(-) 를 통해 해당 서비스가 의존하는 서비스의 이름을 지정하기만 하면 된다.
+물론 여러 요구사항이 있을 경우 대쉬(-) 를 추가해서 여러 서비스에 의존할 수도 있다.
+
+Interactive 모드로 실행하기 위해서는 ```stdin_open``` 옵션을 true 로 설정해서 개방형 입력 연결이 필요하다는 것을 도커에게 알리면 된다. 
+그리고 ```tty``` 옵션을 넣고 true 로 설정해야 한다. 
+결국 ```-it``` 플래그는 개방형 표준 입력을 위한 대쉬(-) 와 입력 플래그의 조합인 것이다. 그리고 ```tty``` 는 터미널에 연결하기 위한 것이다.
+```
+services:
+  frontend:
+    #...
+    stdin_open: true
+    tty: true
+```
+
+예를 들면 최종적으로 아래와 같은 Docker Compose 를 통해 3 개의 컨테이너를 명령을 사용하지 않고 실행할 수 있게 됩니다.
+따라서 읽기 쉽고, 조작하기 쉽고, 유지 관리하기 쉬워진다.
