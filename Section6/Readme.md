@@ -242,3 +242,7 @@ sevices:
 ```
 
 이렇게 Docker Compose 는 Docker 명령의 모든 것을 대체하지는 못하지만 수동적이고 반복적인 Docker 의 많은 명령들을 대체해주는 역할을 한다.
+또한 볼륨과 바인드 마운트를 쉽게 설계할 수 있고, 자동으로 Docker Compose 파일 내의 모든 컨테이너에 대해 Default 된 네트워크를 생성해준다.
+즉, Docker Compose 설정파일 하나만으로 명령 프롬프트나 터미널에 긴 명령을 입력하는 것보다 더 편리해진다.
+
+하지만 Docker Compose 가 Dockerfile 을 대체하는 것은 아니라는 점을 기억하고 있어야 한다. ```docker run``` 과 ```docker build``` 명령을 대체해준다.
