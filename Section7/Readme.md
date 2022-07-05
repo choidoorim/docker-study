@@ -49,3 +49,28 @@ $ docker run -it -v [로컬경로:/컨테이너내부경로] [이미지명] init
 하지만 Docker Compose 를 사용한다면 해결할 수 있다.
 
 # Docker Compose 사용
+```
+version: "3.8"
+services:
+  npm:
+    build: ./
+    stdin_open: true
+    tty: true
+    volume: ./:/app
+```
+```stdin_open``` 와 ```tty``` 플래그를 true 로 설정하여 입력이 필요한 명령의 경우에는 입력을 받을 수 있도록 한다. ```docker run``` 명령의 ```-it``` 옵션과 같은 것이다.
+
+```$ docker run``` 명령의 이미지 뒤에 명령을 추가할 수 있지만 ```$ docker-compose up``` 명령은 단지 docker-compose.yaml 파일에 정의된 서비스를 불러오기 위한 것이다.     
+도커 컴포즈에 의해 생성된 이미 실행 중인 컨테이너에서 명령을 실행하기 위해서는 ```$ docker-compose exec``` 과 ```$ docker-compose run``` 을 사용한다.
+
+```$ docker-compose run``` 을 사용하면 yaml 파일에 여러 서비스가 있는 경우 단일 서비스로 실행할 수 있다. 즉, 서비스 이름으로 단일 서비스를 지정할 수 있는 것이다.    
+```
+$ docker-compose run npm[서비스명] init[명령]
+```
+```$ docker-compose run``` 에는 up 과 down 이 없으므로 컨테이너가 시작되어 작업을 수행하고 명령이 완료되면 종료된다. 즉, 컨테이너가 제거되지 않는다는 뜻이다.
+그렇기에 **--rm 옵션을 추가하면 컨테이너는 명령을 완료한 다음 제거된다.
+```
+$ docker-compose run --rm npm[서비스명] init[명령]
+```
+
+유틸리티 컨테이너 패턴을 유용하다. **먼저 모든 라이브러리, 패키지 등을 설치하지 않고도 로컬 시스템에서 특정한 것을 설정할 수 있음을 의미하기 때문**이다.
