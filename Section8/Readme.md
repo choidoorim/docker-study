@@ -104,3 +104,34 @@ services:
     env_file:
       - ./env/mysql
 ```
+
+# Composer 유틸리티 컨테이너 추가
+Composer 유틸리티 컨테이너는 처음 Laravel 어플리케이션을 설정하는데 사용할 수 있다.     
+Docker Hub 에서 [Composer 이미지](https://hub.docker.com/_/composer)를 지원한다.
+
+```composer.dockerfile``` 이라는 새로운 Dockerfile 을 만든다. 
+```dockerfile
+FROM composer:latest
+
+WORKDIR /var/www/html
+
+ENTRYPOINT ["composer", "--ignore-platform-reqs"]
+```
+ENTRYPOINT 를 사용하기 위해서 Composer 이미지를 만드는 것이다.
+ENTRYPOINT 를 위와 같이 설정하면 일부 종속성이 누락되더라고 경고나 오류 없이 실행할 수 있다.      
+Working Directory 는 '/var/www/html' 로 설정한다. 왜냐하면 이 경로에 우리의 코드들이 있을 것이기 때문이다.
+
+그리고 Dockerfile 을 만들었기에 docker compose 파일에서 만든 Dockerfile 을 추가해줘야 한다.
+```
+services:
+  build:
+    context: ./dockerfiles
+    dockerfile: composer.dockerfile
+  volumes:
+    - ./src:/var/www/html
+```
+그리고 소스 폴더를 컨테이너 내부의 '/var/www/html' 폴더에 바인딩하기 위해서 바인드 마운트 설정을 위와 같이 해줘야 한다.     
+
+예를 들면 **Composer 를 통해 컨테이너 내부의 해당 폴더에서 Laravel 어플리케이션을 생성한다면 로컬 호스트 머신의 소스 폴더로 다시 미러링**된다.
+즉, Composer 유틸리티 컨테이너는 php, mysql, server 컨테이너를 만드는데 필요한 것이다.
+
