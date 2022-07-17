@@ -6,6 +6,7 @@ NodeJS 와 다르게 PHP/Laravel 은 PHP 가 서버를 구축하지 않기 때�
 PHP 인터프리터 컨테이너와 코드를 실행하는데 필요한 부가 서버인 Nginx 웹 서버가 들어가 있다.
 웹 서버 컨테이너는 기본적으로 들어오는 요청을 받은 다음 PHP 인터프리터로 이동해서 응답을 생성하여 요청을 전송한 클라이언트에게 그 응답을 돌려주도록 한다.     
 그리고 데이터를 저장하기 위한 MYSQL 데이터베이스 컨테이너가 추가적으로 있어야 한다.
+- 인터프리터: 프로그래밍 언어의 소스 코드를 바로 실행하는 컴퓨터 프로그램 또는 환경을 말한다.
 
 각각 분리된 세 개의 컨테이너는 어플리케이션 컨테이너이다. 그리고 추가로 몇 개의 유틸리티 컨테이너가 필요하다.
 1. 예를 들면 Composer 가 필요하다. Node 의 npm 같은 것으로 패키지를 설치하는데 사용하는 패키지 관리자이다.    
@@ -135,3 +136,38 @@ services:
 예를 들면 **Composer 를 통해 컨테이너 내부의 해당 폴더에서 Laravel 어플리케이션을 생성한다면 로컬 호스트 머신의 소스 폴더로 다시 미러링**된다.
 즉, Composer 유틸리티 컨테이너는 php, mysql, server 컨테이너를 만드는데 필요한 것이다.
 
+```$ docker-compose run --rm composer create-project --prefer-dist laravel/laravel .``` 명령을 통해 컨테이너들을 실행할 수 있다.    
+그리고 로컬의 src 폴더를 보면 그 안에 Laravel 어플리케이션이 있다.
+
+# 일부 Docker Compose 서비스만 구동하기
+```src/.env``` 폴더는 Laravel 에 의해 생성되었고 Laravel 에 대한 구성을 가지고 있다.   
+
+현재 server 는 php 의 현재 코드에 대해 아무것도 모르고 있다. 들어오는 요청이 먼저 server 에 도달하고, php 파일에 대한 요청만이 php 인터프리터에 전달되야 한다.    
+그렇기에 docker compose 파일에 부가적인 볼륨이 추가되어야 한다. ```- ./src:/var/www/html```     
+그리고 그 부가 볼륨은 또다른 바인딩 마운트가 된다. ```/src``` 폴더를 컨테이너 내부의 ```/var/www/html``` 폴더에 바인딩 한다.
+```
+services: 
+  server:
+    image: 'nginx:stable-alpine'
+    ports: 
+      - '8000:80'
+    volumes: 
+      - ./src:/var/www/html
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+```
+```nginx.conf``` 파일을 보면 ```/var/www/html``` 폴더에서 콘텐츠를 제공하고, 파일을 찾는다. 
+따라서 바인딩하는 것이 server 를 통해 콘텐츠를 사용하기 위해 해야만 하는 일인 것이다.
+
+만약 docker compose 파일에서 원하는 컨테이너만 사용하기 위해서 ```$ docker-compose up``` 명령에서 특별한 기능을 제공한다.    
+예를 들면 server, php, mysql 컨테이너만 실행하고 싶다면 ```$ docker-compose up server php mysql``` 명령을 실행하면 된다.    
+그리고 server 서비스에는 의존하는 서비스를 지정해야 한다. nginx 서버는 php 서비스와 통신할 수 있고, mysql 서비스와 통신할 수 있는 경우에만 작동하기 때문이다.
+
+Dockerfile 이 변경되거나 또는 Dockerfile 을 통해 복사된 일부 파일이 변경된다면 이러한 변경 사항은 docker-compose 에 의해 적용되지 않는다. 
+즉, 이미지를 리빌드 하지 않을 것이다. docker-compose 없이 변경된 이미지를 리빌드하기 위해서는 수동으로 ```$ docker build``` 를 실행했어야 한다.   
+그러므로 docker-compose 가 Dockerfile 을 재평가하여 필요한 경우에 이미지를 리빌드하도록 하려면 ```--build``` 옵션도 추가해야 한다.
+```
+$ docker-compose up -d --build server php mysql
+```
+변경된 사항이 있는 경우에 이미지를 다시 생성하도록 강제한다. **아무것도 변경하지 않았다면 이미지의 레이어 개념으로 인해 그리고 레이어가 캐시되기 때문에 당연히 이미지가 리빌드 되지 않는다**.    
+따라서 결과적으로 항상 최신의 이미지를 사용할 수 있게 되었다.    
+항상 ```--build``` 옵션을 사용하기보다는 이미지에 대해 변경된 사항이 있는 경우에만 추가할 수도 있다.
