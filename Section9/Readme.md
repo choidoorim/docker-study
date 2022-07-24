@@ -191,3 +191,23 @@ AWS 는 실제로 컨테이너를 실행하는 EC2 인스턴스를 생성하지 
 
 AWS ECS 는 Auto Scaling 이라고 하는 기능을 제공한다. 그것은 동시에 둘 이상의 실행 중인 컨테이너를 생성한다. 
 Task 크기의 확장을 지원하여 들어오는 요청을 처리할 수 있도록 더 많은 컨테이너를 생성하는데 도움이 된다.
+
+# 관리되는 컨테이너를 업데이트 하기
+소스코드에 변경된 사항이 있을 경우, Docker image 를 빌드하고, Docker Hub 에 해당 이미지를 올려야 한다.
+```
+$ docker build ...
+$ docker tag ...
+$ docker push ...
+```
+
+ECS 에서는 도커 허브에 업데이트한 이미지를 자동으로 인식하지는 않는다. 
+AWS ECS 의 ```Cluster -> Task -> Task Definition``` 의 실행 중인 태스크를 선택하고 ```Create new revision``` 을 통해 새로운 태스크를 생성한다.
+같은 태스크를 다시 만들면 AWS ECS 에서 업데이트된 이미지를 자동으로 가져온다.         
+그리고 Actions 에서 Update Service 를 클릭한다. 
+- 만약 새로운 태스크를 만들지 않는 다른 방법은 ```Update Service``` 에서 ```Force new Deployment``` 를 선택하는 것이다.
+
+Skip Review 를 클릭한 뒤에 Update Service 를 클릭하면 실제로 최신 이미지를 가져온 다음 이 태스크에서 서비스를 다시 시작한다.
+
+근데 이렇게하면 public IP 가 이전과 다르다. 
+AWS 는 구동되는 모든 새 태스크에 대해서 새로운 것을 생성하고 할당한다.
+하지만 AWS 에서 할당한 특정 IP 와는 별도로 일반적으로 실행 중인 ECS 태스크에 도메인을 연결하는 방법도 있다.
